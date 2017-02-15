@@ -24,6 +24,8 @@ use AmoCRM\Helpers\Fields;
  * @property \AmoCRM\Models\Unsorted $unsorted
  * @property \AmoCRM\Models\Widgets $widgets
  * @property \AmoCRM\Models\WebHooks $webhooks
+ * @property \AmoCRM\Models\Customer $customer
+ * @property \AmoCRM\Models\Link $link
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.

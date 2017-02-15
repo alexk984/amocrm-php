@@ -1,5 +1,5 @@
 {
-    "name": "dotzero/amocrm",
+    "name": "alexk984/amocrm-php",
     "description": "Удобный и быстрый клиент для работы с API amoCRM",
     "license": "MIT",
     "keywords": ["amocrm", "crm", "api"],
@@ -7,6 +7,10 @@
         {
             "name": "dotzero",
             "email": "mail@dotzero.ru"
+        },
+        {
+            "name": "alexk984",
+            "email": "alexk984@gmail.com"
         }
     ],
     "require": {

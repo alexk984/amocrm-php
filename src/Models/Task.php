@@ -148,11 +148,12 @@ class Task extends Base
      * @link https://developers.amocrm.ru/rest_api/tasks_set.php
      * @param int $id Уникальный идентификатор задачи
      * @param string $text Текст задачи
+     * @param int $status Статус завершения 0/1
      * @param string $modified Дата последнего изменения данной сущности
      * @return bool Флаг успешности выполнения запроса
      * @throws \AmoCRM\Exception
      */
-    public function apiUpdate($id, $text, $modified = 'now')
+    public function apiUpdate($id, $text, $status = 0, $modified = 'now')
     {
         $this->checkId($id);
 
@@ -165,6 +166,7 @@ class Task extends Base
         $task = $this->getValues();
         $task['id'] = $id;
         $task['text'] = $text;
+        $task['status'] = $status;
         $task['last_modified'] = strtotime($modified);
 
         $parameters['tasks']['update'][] = $task;

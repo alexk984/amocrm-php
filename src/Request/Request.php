@@ -147,7 +147,7 @@ class Request
             ]));
         }
 
-        return sprintf('https://%s.amocrm.ru%s?%s', $this->parameters->getAuth('domain'), $url, $query);
+        return sprintf('https://%s.amocrm.com%s?%s', $this->parameters->getAuth('domain'), $url, $query);
     }
 
     /**
@@ -174,6 +174,8 @@ class Request
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEJAR, __DIR__ . '/cookie.txt');
 
         if ($this->parameters->hasPost()) {
             $fields = json_encode([
@@ -200,20 +202,7 @@ class Request
             throw new NetworkException($error, $errno);
         }
 
-        return $this->parseResponse($result, $info);
-    }
-
-    /**
-     * Парсит HTTP ответ, валидирует и возвращает тело
-     *
-     * @param string $response HTTP ответ
-     * @param array $info Результат функции curl_getinfo
-     * @return mixed
-     * @throws Exception
-     */
-    protected function parseResponse($response, $info)
-    {
-        $result = json_decode($response, true);
+        $result = json_decode($result, true);
 
         if (!isset($result['response'])) {
             return false;
@@ -221,6 +210,10 @@ class Request
             $code = 0;
             if (isset($result['response']['error_code']) && $result['response']['error_code'] > 0) {
                 $code = $result['response']['error_code'];
+                if ($code == 401) {
+                    $this->auth();
+                    return $this->request($url, $modified);
+                }
             }
             if ($this->v1 === false) {
                 throw new Exception($result['response']['error'], $code);
@@ -230,6 +223,26 @@ class Request
         }
 
         return $result['response'];
+    }
+
+    protected function auth()
+    {
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://' . $this->parameters->getAuth('domain') . '.amocrm.com/private/api/auth.php');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'USER_LOGIN' => $this->parameters->getAuth('login'),
+            'USER_HASH' => $this->parameters->getAuth('apikey'),
+        ]);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, __DIR__ . '/cookie.txt');
+        curl_setopt($ch, CURLOPT_COOKIEJAR, __DIR__ . '/cookie.txt');
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $result = json_decode($response, true);
+        if (isset($result['response']['error_code']))
+            throw new Exception('Error while authorize');
     }
 
     /**
